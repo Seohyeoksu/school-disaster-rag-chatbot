@@ -1,59 +1,30 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { processPDF, getAllPDFFiles } from '@/lib/pdf-processor';
-import { storeDocument, clearDocuments } from '@/lib/embeddings';
-import path from 'path';
+import { NextResponse } from 'next/server';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
-export async function POST(request: NextRequest) {
+export async function GET() {
   try {
-    const pdfDir = path.join(process.cwd(), 'pdfs');
-    const pdfFiles = await getAllPDFFiles(pdfDir);
+    console.log('📊 Checking database status...');
+    const supabaseAdmin = getSupabaseAdmin();
     
-    if (pdfFiles.length === 0) {
-      return NextResponse.json(
-        { error: 'No PDF files found in pdfs directory' },
-        { status: 400 }
-      );
+    // Check document count in database
+    const { data, error, count } = await supabaseAdmin
+      .from('documents')
+      .select('id', { count: 'exact', head: true });
+    
+    if (error) {
+      throw error;
     }
     
-    await clearDocuments();
-    
-    let totalChunks = 0;
-    const results = [];
-    
-    for (const pdfFile of pdfFiles) {
-      const fileName = path.basename(pdfFile);
-      
-      try {
-        const chunks = await processPDF(pdfFile);
-        
-        for (const chunk of chunks) {
-          await storeDocument(chunk);
-        }
-        
-        totalChunks += chunks.length;
-        results.push({
-          file: fileName,
-          chunks: chunks.length,
-          status: 'success'
-        });
-      } catch (error) {
-        results.push({
-          file: fileName,
-          error: (error as Error).message,
-          status: 'error'
-        });
-      }
-    }
-    
-    return NextResponse.json({
-      message: 'Indexing complete',
-      totalChunks,
-      results
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Database connection successful!',
+      documentCount: count || 0,
+      status: count && count > 0 ? 'Documents available' : 'No documents found'
     });
   } catch (error) {
-    console.error('Error in index API:', error);
+    console.error('❌ Error checking database:', error);
     return NextResponse.json(
-      { error: 'Failed to index PDFs' },
+      { success: false, error: 'Failed to connect to database' },
       { status: 500 }
     );
   }

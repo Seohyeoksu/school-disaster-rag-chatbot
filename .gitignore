@@ -33,8 +33,8 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
-# PDF files (commented out to include in deployment)
-# *.pdf
+# PDF files (too large for git, not needed for deployment)
+*.pdf
 
 # vercel
 .vercel
