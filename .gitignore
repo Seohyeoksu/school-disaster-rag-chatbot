@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# PDF files (too large for git)
+*.pdf
+
 # vercel
 .vercel
 
