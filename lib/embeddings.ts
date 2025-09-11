@@ -34,13 +34,18 @@ export async function searchSimilarDocuments(
       const keyTerms = query.split(' ').filter(term => term.length > 1);
       let fallbackData: Array<Record<string, any>> = [];
       
+      console.log('🔍 Searching for key terms:', keyTerms.slice(0, 3));
+      
       // Try searching for key terms
       for (const term of keyTerms.slice(0, 3)) {
-        const { data: termData } = await supabaseAdmin
+        const { data: termData, error: termError } = await supabaseAdmin
           .from('documents')
           .select('id, content, metadata')
           .ilike('content', `%${term}%`)
           .limit(5);
+        
+        console.log(`🔍 Term "${term}" found:`, termData?.length || 0, 'results');
+        if (termError) console.log('🔍 Term error:', termError);
         
         if (termData) {
           fallbackData = [...fallbackData, ...termData];
@@ -52,14 +57,18 @@ export async function searchSimilarDocuments(
         index === self.findIndex(t => t.id === item.id)
       ).slice(0, matchCount);
       
+      console.log('📋 Final keyword search results:', uniqueData.length);
+      
       if (uniqueData.length > 0) {
-        console.log('📋 Keyword search found:', uniqueData.length);
-        return uniqueData.map(doc => ({
+        const result = uniqueData.map(doc => ({
           ...doc,
           similarity: 0.7 // High score for keyword matches
         }));
+        console.log('📋 Returning keyword results:', result.length);
+        return result;
       }
       
+      console.log('❌ No results from keyword search either');
       return [];
     }
 
