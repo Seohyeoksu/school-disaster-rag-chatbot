@@ -5,7 +5,7 @@ export interface RAGResponse {
   answer: string;
   sources: Array<{
     content: string;
-    metadata: any;
+    metadata: Record<string, any>;
     similarity: number;
   }>;
 }

@@ -7,8 +7,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Send, Loader2, Shield, Bot, User, AlertTriangle, Phone, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
+import { Send, Loader2, Shield, Bot, User, Phone, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -16,7 +15,7 @@ interface Message {
   content: string;
   sources?: Array<{
     content: string;
-    metadata: any;
+    metadata: Record<string, any>;
     similarity: number;
   }>;
   timestamp: Date;

@@ -1,39 +1,10 @@
 import { generateEmbedding } from './openai';
 import { getSupabaseAdmin } from './supabase';
-import { ProcessedChunk } from './pdf-processor';
-import { v4 as uuidv4 } from 'uuid';
-
-export async function storeDocument(chunk: ProcessedChunk): Promise<void> {
-  try {
-    const embedding = await generateEmbedding(chunk.content);
-    const supabaseAdmin = getSupabaseAdmin();
-    
-    // Supabase expects vector as a string in SQL format
-    const vectorString = `[${embedding.join(',')}]`;
-    
-    const { error } = await supabaseAdmin
-      .from('documents')
-      .insert({
-        id: uuidv4(),
-        content: chunk.content,
-        metadata: chunk.metadata,
-        embedding: vectorString,
-      });
-
-    if (error) {
-      console.error('Error storing document:', error);
-      throw error;
-    }
-  } catch (error) {
-    console.error('Error in storeDocument:', error);
-    throw error;
-  }
-}
 
 export async function searchSimilarDocuments(
   query: string,
   matchCount: number = 10
-): Promise<any[]> {
+): Promise<Array<Record<string, any>>> {
   try {
     console.log('🔍 Searching for query:', query);
     const queryEmbedding = await generateEmbedding(query);
@@ -49,7 +20,7 @@ export async function searchSimilarDocuments(
     
     // Try RPC function for vector search
     const queryVector = `[${queryEmbedding.join(',')}]`;
-    let { data, error } = await supabaseAdmin.rpc('match_documents', {
+    const { data, error } = await supabaseAdmin.rpc('match_documents', {
       query_embedding: queryVector,
       match_count: matchCount,
     });
@@ -61,7 +32,7 @@ export async function searchSimilarDocuments(
       
       // Extract key terms for better fallback search
       const keyTerms = query.split(' ').filter(term => term.length > 1);
-      let fallbackData: any[] = [];
+      let fallbackData: Array<Record<string, any>> = [];
       
       // Try searching for key terms
       for (const term of keyTerms.slice(0, 3)) {
@@ -100,20 +71,3 @@ export async function searchSimilarDocuments(
   }
 }
 
-export async function clearDocuments(): Promise<void> {
-  try {
-    const supabaseAdmin = getSupabaseAdmin();
-    const { error } = await supabaseAdmin
-      .from('documents')
-      .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000');
-
-    if (error) {
-      console.error('Error clearing documents:', error);
-      throw error;
-    }
-  } catch (error) {
-    console.error('Error in clearDocuments:', error);
-    throw error;
-  }
-}
