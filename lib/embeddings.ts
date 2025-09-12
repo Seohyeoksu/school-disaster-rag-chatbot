@@ -18,16 +18,18 @@ export async function searchSimilarDocuments(
       .select('id', { count: 'exact', head: true });
     console.log('📊 Total documents in DB:', countData);
     
-    // Try RPC function for vector search
-    const queryVector = `[${queryEmbedding.join(',')}]`;
+    // Try RPC function for vector search with higher match_count to overcome similarity threshold
+    // The pgvector search has an implicit similarity threshold that filters out results
+    // when match_count is low. Use a higher count then limit results afterwards.
+    const searchCount = Math.max(matchCount, 30); // Minimum 30 to overcome threshold
     const { data, error } = await supabaseAdmin.rpc('match_documents', {
-      query_embedding: queryVector,
-      match_count: matchCount,
+      query_embedding: queryEmbedding, // Direct array works better than string format
+      match_count: searchCount,
     });
 
     console.log('🎯 RPC function result:', { data: data?.length || 0, error });
 
-    if (error || !data || data.length < 3) {
+    if (error || !data || data.length === 0) {
       console.log('❌ Vector search insufficient, using text-based fallback:', error);
       
       // Extract key terms for better fallback search
@@ -73,7 +75,10 @@ export async function searchSimilarDocuments(
     }
 
     console.log('✅ Returning RPC results:', data?.length || 0);
-    return data || [];
+    // Limit results to requested matchCount
+    const limitedData = data.slice(0, matchCount);
+    console.log('📋 Limited to requested count:', limitedData.length);
+    return limitedData;
   } catch (error) {
     console.error('💥 Error in searchSimilarDocuments:', error);
     throw error;
