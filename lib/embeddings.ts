@@ -1,12 +1,50 @@
 import { generateEmbedding } from './openai';
 import { getSupabaseAdmin } from './supabase';
 
+// Define keyword mappings for disaster types
+const DISASTER_KEYWORDS = {
+  '집중호우': ['집중호우', '폭우', '호우', '침수', '홍수'],
+  '폭우': ['폭우', '집중호우', '호우', '침수', '홍수'],
+  '호우': ['호우', '집중호우', '폭우', '침수', '홍수'],
+  '침수': ['침수', '집중호우', '폭우', '호우', '홍수'],
+  '홍수': ['홍수', '집중호우', '폭우', '호우', '침수'],
+  '산불': ['산불', '화재', '연기'],
+  '지진': ['지진', '진동', '흔들림'],
+  '태풍': ['태풍', '바람', '강풍'],
+  '황사': ['황사', '먼지', '모래'],
+  '폭염': ['폭염', '더위', '열사병']
+};
+
+function expandQueryWithKeywords(query: string): string[] {
+  const expandedQueries = [query]; // Original query first
+  
+  // Find matching disaster types and add related keywords
+  for (const [mainKeyword, synonyms] of Object.entries(DISASTER_KEYWORDS)) {
+    if (query.includes(mainKeyword)) {
+      // Add queries with synonyms
+      synonyms.forEach(synonym => {
+        if (synonym !== mainKeyword) {
+          expandedQueries.push(query.replace(mainKeyword, synonym));
+        }
+      });
+      break; // Only expand for first matching disaster type
+    }
+  }
+  
+  return expandedQueries;
+}
+
 export async function searchSimilarDocuments(
   query: string,
   matchCount: number = 10
 ): Promise<Array<Record<string, any>>> {
   try {
     console.log('🔍 Searching for query:', query);
+    
+    // Try hybrid search for better results
+    const expandedQueries = expandQueryWithKeywords(query);
+    console.log('🔄 Expanded queries:', expandedQueries.length > 1 ? expandedQueries : 'none');
+    
     const queryEmbedding = await generateEmbedding(query);
     console.log('✅ Generated embedding, length:', queryEmbedding?.length);
     
@@ -30,27 +68,57 @@ export async function searchSimilarDocuments(
     console.log('🎯 RPC function result:', { data: data?.length || 0, error });
 
     if (error || !data || data.length === 0) {
-      console.log('❌ Vector search insufficient, using text-based fallback:', error);
+      console.log('❌ Vector search insufficient, using enhanced fallback:', error);
       
-      // Extract key terms for better fallback search
-      const keyTerms = query.split(' ').filter(term => term.length > 1);
+      // Enhanced fallback with disaster-specific keywords
       let fallbackData: Array<Record<string, any>> = [];
       
-      console.log('🔍 Searching for key terms:', keyTerms.slice(0, 3));
+      // First try disaster-specific keywords
+      const disasterKeywords = [];
+      for (const [mainKeyword, synonyms] of Object.entries(DISASTER_KEYWORDS)) {
+        if (query.includes(mainKeyword)) {
+          disasterKeywords.push(...synonyms);
+          break;
+        }
+      }
       
-      // Try searching for key terms
-      for (const term of keyTerms.slice(0, 3)) {
-        const { data: termData, error: termError } = await supabaseAdmin
-          .from('documents')
-          .select('id, content, metadata')
-          .ilike('content', `%${term}%`)
-          .limit(5);
+      if (disasterKeywords.length > 0) {
+        console.log('🔍 Searching for disaster keywords:', disasterKeywords.slice(0, 3));
         
-        console.log(`🔍 Term "${term}" found:`, termData?.length || 0, 'results');
-        if (termError) console.log('🔍 Term error:', termError);
+        for (const keyword of disasterKeywords.slice(0, 3)) {
+          const { data: termData, error: termError } = await supabaseAdmin
+            .from('documents')
+            .select('id, content, metadata')
+            .ilike('content', `%${keyword}%`)
+            .limit(5);
+          
+          console.log(`🔍 Keyword "${keyword}" found:`, termData?.length || 0, 'results');
+          if (termError) console.log('🔍 Keyword error:', termError);
+          
+          if (termData) {
+            fallbackData = [...fallbackData, ...termData];
+          }
+        }
+      }
+      
+      // If still no results, try general terms
+      if (fallbackData.length === 0) {
+        const keyTerms = query.split(' ').filter(term => term.length > 1);
+        console.log('🔍 Searching for general terms:', keyTerms.slice(0, 3));
         
-        if (termData) {
-          fallbackData = [...fallbackData, ...termData];
+        for (const term of keyTerms.slice(0, 3)) {
+          const { data: termData, error: termError } = await supabaseAdmin
+            .from('documents')
+            .select('id, content, metadata')
+            .ilike('content', `%${term}%`)
+            .limit(5);
+          
+          console.log(`🔍 Term "${term}" found:`, termData?.length || 0, 'results');
+          if (termError) console.log('🔍 Term error:', termError);
+          
+          if (termData) {
+            fallbackData = [...fallbackData, ...termData];
+          }
         }
       }
       
@@ -59,18 +127,18 @@ export async function searchSimilarDocuments(
         index === self.findIndex(t => t.id === item.id)
       ).slice(0, matchCount);
       
-      console.log('📋 Final keyword search results:', uniqueData.length);
+      console.log('📋 Final fallback search results:', uniqueData.length);
       
       if (uniqueData.length > 0) {
         const result = uniqueData.map(doc => ({
           ...doc,
           similarity: 0.7 // High score for keyword matches
         }));
-        console.log('📋 Returning keyword results:', result.length);
+        console.log('📋 Returning fallback results:', result.length);
         return result;
       }
       
-      console.log('❌ No results from keyword search either');
+      console.log('❌ No results from fallback search either');
       return [];
     }
 

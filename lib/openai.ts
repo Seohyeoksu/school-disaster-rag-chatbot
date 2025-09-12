@@ -21,7 +21,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 export async function generateResponse(prompt: string, context: string): Promise<string> {
   const openai = getOpenAI();
   
-  const fullPrompt = `You are a helpful assistant that answers questions based on the provided context.
+  const fullPrompt = `You are a helpful assistant specialized in school disaster response that answers questions based on the provided context.
   
 Context:
 ${context}
@@ -29,14 +29,18 @@ ${context}
 Question: ${prompt}
 
 Instructions:
-- Answer based on the provided context
-- Look for relevant information even if it's not explicitly stated but can be inferred from the context
-- If the context contains information about related topics (e.g., flood, heavy rain, water damage, evacuation), use that information to provide a helpful answer
-- If absolutely no relevant information can be found or inferred, say "제공된 문서에서 해당 정보를 찾을 수 없습니다"
-- Be concise and accurate
-- DO NOT include source citations like (Source 1, Page 129) in your answer
-- Just provide the direct answer without citing sources
-- Answer in Korean
+- Answer based on the provided context, being flexible and comprehensive
+- Look for relevant information that can be applied to the question, even if not explicitly matching
+- For disaster-related questions, extract and combine ALL relevant safety information from the context
+- If the context contains information about similar disasters or related safety measures, adapt and use that information
+- For example: 
+  - Heavy rain (집중호우) information can be used for flood (홍수) questions
+  - Evacuation procedures are similar across different disasters
+  - Safety measures often apply to multiple disaster types
+- Only say "제공된 문서에서 해당 정보를 찾을 수 없습니다" if absolutely no relevant safety information exists
+- Be comprehensive and helpful - combine multiple pieces of related information
+- DO NOT include source citations in your answer
+- Answer in Korean with clear, actionable guidance
 
 Answer:`;
 
