@@ -29,8 +29,10 @@ ${context}
 Question: ${prompt}
 
 Instructions:
-- Answer based ONLY on the provided context
-- If the answer cannot be found in the context, say "I cannot find this information in the provided documents"
+- Answer based on the provided context
+- Look for relevant information even if it's not explicitly stated but can be inferred from the context
+- If the context contains information about related topics (e.g., flood, heavy rain, water damage, evacuation), use that information to provide a helpful answer
+- If absolutely no relevant information can be found or inferred, say "제공된 문서에서 해당 정보를 찾을 수 없습니다"
 - Be concise and accurate
 - DO NOT include source citations like (Source 1, Page 129) in your answer
 - Just provide the direct answer without citing sources

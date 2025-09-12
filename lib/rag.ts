@@ -17,7 +17,7 @@ export async function queryRAG(
   try {
     console.log('🔍 RAG: Searching for question:', question);
     // Increase search count to get more potentially relevant documents
-    const searchCount = Math.max(matchCount * 2, 10); // Search for double the requested amount
+    const searchCount = Math.max(matchCount * 4, 20); // Search for 4x the requested amount to ensure we get relevant docs
     const relevantDocs = await searchSimilarDocuments(question, searchCount);
     console.log('🔍 RAG: Found documents:', relevantDocs.length);
     
@@ -29,14 +29,14 @@ export async function queryRAG(
       };
     }
     
-    // Filter documents with similarity > 0.25 (lower threshold for better coverage)
-    const filteredDocs = relevantDocs.filter(doc => doc.similarity > 0.25);
-    console.log(`🔍 RAG: Filtered to ${filteredDocs.length} docs with similarity > 0.25`);
+    // Use a more lenient similarity threshold and take more documents
+    const filteredDocs = relevantDocs.filter(doc => doc.similarity > 0.15);
+    console.log(`🔍 RAG: Filtered to ${filteredDocs.length} docs with similarity > 0.15`);
     
-    // If no docs pass the threshold, use top docs anyway
+    // Take up to 10 documents to ensure we don't miss relevant content
     const docsToUse = filteredDocs.length > 0 
-      ? filteredDocs.slice(0, matchCount)
-      : relevantDocs.slice(0, matchCount);
+      ? filteredDocs.slice(0, Math.max(matchCount, 10))
+      : relevantDocs.slice(0, Math.max(matchCount, 10));
     
     if (docsToUse.length === 0) {
       console.log('❌ RAG: No documents after filtering, returning default message');
