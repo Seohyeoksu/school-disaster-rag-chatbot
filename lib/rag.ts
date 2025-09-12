@@ -12,7 +12,7 @@ export interface RAGResponse {
 
 export async function queryRAG(
   question: string,
-  matchCount: number = 5
+  matchCount: number = 3
 ): Promise<RAGResponse> {
   try {
     console.log('🔍 RAG: Searching for question:', question);
@@ -114,7 +114,7 @@ export async function queryRAG(
     
     return {
       answer,
-      sources: docsToUse.map(doc => ({
+      sources: docsToUse.slice(0, 3).map(doc => ({ // Limit to top 3 sources for cleaner UI
         content: doc.content,
         metadata: doc.metadata,
         similarity: doc.similarity
