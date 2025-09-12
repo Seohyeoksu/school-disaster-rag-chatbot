@@ -21,7 +21,7 @@ export async function searchSimilarDocuments(
     // Try RPC function for vector search with higher match_count to overcome similarity threshold
     // The pgvector search has an implicit similarity threshold that filters out results
     // when match_count is low. Use a higher count then limit results afterwards.
-    const searchCount = Math.max(matchCount, 30); // Minimum 30 to overcome threshold
+    const searchCount = Math.max(matchCount, 50); // Increased to 50 to get more results including low similarity
     const { data, error } = await supabaseAdmin.rpc('match_documents', {
       query_embedding: queryEmbedding, // Direct array works better than string format
       match_count: searchCount,
