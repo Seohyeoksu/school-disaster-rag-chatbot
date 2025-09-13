@@ -194,7 +194,7 @@ export function ChatInterface() {
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-red-600" />
                         <span className="text-sm font-medium text-red-700">
-                          참고 매뉴얼 ({message.sources.length}개 섹션)
+                          참고 매뉴얼 ({Math.min(message.sources.length, 3)}개 섹션)
                         </span>
                       </div>
                       {expandedSources[message.id] ? (
@@ -206,7 +206,7 @@ export function ChatInterface() {
                     
                     {expandedSources[message.id] && (
                       <div className="space-y-3 pl-4 border-l-2 border-red-200">
-                        {message.sources.map((source, idx) => (
+                        {message.sources.slice(0, 3).map((source, idx) => (
                           <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center gap-2">
