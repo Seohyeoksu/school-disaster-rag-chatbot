@@ -137,8 +137,8 @@ export function ChatInterface() {
         <div className="mt-2 text-xs text-red-200 flex items-center gap-2">
           📚 현재 활용 중인 매뉴얼: 학교현장 재난유형별 교육훈련 매뉴얼
           <span className="text-red-300">|</span>
-          <a 
-            href="https://www.schoolsafe24.or.kr/front/rpstr/selectRpstrInfo.do?menuSn=185&upperMenuSn=148&rpstrPstSn=4"
+          <a
+            href="https://www.schoolsafe24.or.kr/front/rpstr/rpstrList.do?menuSn=185&upperMenuSn=148&menuSn=181&upperMenuSn=148"
             target="_blank"
             rel="noopener noreferrer"
             className="text-red-200 hover:text-white underline transition-colors"
