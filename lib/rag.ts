@@ -76,7 +76,7 @@ export async function queryRAG(
         .sort((a, b) => b.combinedScore - a.combinedScore);
       
       const nonKeywordDocs = scoredDocs.filter(doc => doc.keywordScore === 0 && doc.similarity > 0.15)
-        .sort((a, b) => b.similarity - a.similarity);
+        .sort((a, b) => b.combinedScore - a.combinedScore);
       
       console.log(`🔍 RAG: Found ${keywordDocs.length} docs with keywords, ${nonKeywordDocs.length} without`);
       
