@@ -57,25 +57,25 @@ export async function queryRAG(
       const scoredDocs = relevantDocs.map(doc => {
         const content = doc.content.toLowerCase();
         let keywordScore = 0;
-        
+
         targetKeywords.forEach(keyword => {
           if (content.includes(keyword)) {
             keywordScore += 1;
           }
         });
-        
+
         return {
           ...doc,
           keywordScore,
           combinedScore: doc.similarity * 0.3 + keywordScore * 0.7 // 70% keyword, 30% similarity
         };
       });
-      
+
       // Sort by combined score and take documents with keyword matches first
       const keywordDocs = scoredDocs.filter(doc => doc.keywordScore > 0)
         .sort((a, b) => b.combinedScore - a.combinedScore);
-      
-      const nonKeywordDocs = scoredDocs.filter(doc => doc.keywordScore === 0 && doc.similarity > 0.15)
+
+      const nonKeywordDocs = scoredDocs.filter(doc => doc.keywordScore === 0 && (doc as any).similarity > 0.15)
         .sort((a, b) => b.combinedScore - a.combinedScore);
       
       console.log(`🔍 RAG: Found ${keywordDocs.length} docs with keywords, ${nonKeywordDocs.length} without`);
