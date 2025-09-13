@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata } from "next";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -11,7 +12,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
+export const metadata: Metadata = {
+  metadataBase: new URL('https://school-disaster-rag-chatbot.vercel.app'),
   title: "학교 재난 대응 도우미",
   description: "학교현장 재난유형별 교육훈련 매뉴얼을 기반으로 한 AI 재난 대응 상담 서비스",
   keywords: "학교 재난, 재난 대응, 안전 교육, 응급처치, 대피 훈련",
@@ -39,7 +41,15 @@ export const metadata = {
   icons: {
     icon: "/favicon.ico",
   },
-};
+  verification: {
+    google: "",
+    yandex: "",
+    yahoo: "",
+  },
+  alternates: {
+    canonical: "https://school-disaster-rag-chatbot.vercel.app",
+  },
+}
 
 export default function RootLayout({
   children,
