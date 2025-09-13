@@ -12,6 +12,19 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: false,
   },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Application-Name',
+            value: '학교 재난 대응 도우미',
+          },
+        ],
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig
