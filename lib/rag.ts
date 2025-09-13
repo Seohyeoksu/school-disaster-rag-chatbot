@@ -107,14 +107,14 @@ export async function queryRAG(
     console.log('✅ RAG: Processing', docsToUse.length, 'documents');
     
     const context = docsToUse
-      .map((doc, index) => `[Source ${index + 1} - ${doc.metadata.source}, Page ${doc.metadata.page}]:\n${doc.content}`)
+      .map((doc: any, index) => `[Source ${index + 1} - ${doc.metadata.source}, Page ${doc.metadata.page}]:\n${doc.content}`)
       .join('\n\n');
-    
+
     const answer = await generateResponse(question, context);
-    
+
     return {
       answer,
-      sources: docsToUse.slice(0, matchCount).map(doc => ({ // Return up to matchCount sources
+      sources: docsToUse.slice(0, matchCount).map((doc: any) => ({ // Return up to matchCount sources
         content: doc.content,
         metadata: doc.metadata,
         similarity: doc.similarity
